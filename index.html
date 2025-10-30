@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Rompecabezas Paseo Paine</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #161a22;
+      --muted: #8a93a5;
+      --primary: #3b82f6;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: #e6e8ee;
+      font-family: ui-sans-serif, system-ui, Segoe UI, Roboto
+    }
+
+    header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #222635
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px
+    }
+
+    small {
+      color: var(--muted)
+    }
+
+    .wrap {
+      display: grid;
+      gap: 16px;
+      padding: 16px
+    }
+
+    @media(min-width:980px) {
+      .wrap {
+        grid-template-columns: 340px 1fr
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid #222635;
+      border-radius: 14px
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #c9cede;
+      padding: 12px 14px;
+      border-bottom: 1px solid #222635
+    }
+
+    .controls {
+      padding: 14px;
+      display: grid;
+      gap: 10px
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px
+    }
+
+    button,
+    .chip {
+      background: #1d2330;
+      border: 1px solid #2a3346;
+      border-radius: 10px;
+      color: #e6e8ee;
+      padding: 10px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    button:hover {
+      background: #232a3b
+    }
+
+    .chip {
+      font-size: 12px;
+      padding: 6px 8px
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px
+    }
+
+    .metric {
+      background: #121722;
+      border: 1px dashed #2a3346;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px
+    }
+
+    .preview {
+      padding: 12px
+    }
+
+    .preview img {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #2a3346;
+      display: block
+    }
+
+    .history {
+      padding: 12px
+    }
+
+    .scroll {
+      max-height: 220px;
+      overflow: auto;
+      font-size: 12px;
+      color: #cdd2df
+    }
+
+    .board-wrap {
+      padding: 12px
+    }
+
+    #board {
+      width: 100%;
+      height: min(72vh, 800px);
+      background: #0d111a;
+      border: 1px solid #222635;
+      border-radius: 12px;
+      display: block
+    }
+
+    #board {
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 30
+    }
+
+    .modal .box {
+      background: var(--panel);
+      border: 1px solid #2a3346;
+      border-radius: 14px;
+      padding: 18px;
+      max-width: 420px;
+      width: 92%
+    }
+
+    .modal h2 {
+      margin: 0 0 10px;
+      font-size: 18px
+    }
+
+    input[type=text] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #2a3346;
+      background: #101521;
+      color: #e6e8ee
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    .gift {
+      margin-top: 10px;
+      display: none
+    }
+
+    .gift a {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #1f2937;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: #fff;
+      text-decoration: none
+    }
+
+    .confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50
+    }
+
+    /* Overlay de error */
+    #err {
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      background: #1f2937;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      display: none;
+      z-index: 60;
+      max-width: 90vw
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Rompecabezas Paseo Paine <small>• Familia &amp; amigos • 2025</small></h1>
+  </header>
+
+  <div class="wrap">
+    <section class="card">
+      <h3>Controles</h3>
+      <div class="controls">
+        <div class="row">
+          <button id="btnMusic">🎵 Música</button>
+          <button id="btnShuffle">🔀 Barajar</button>
+          <button id="btnPrev">◀ Foto</button>
+          <button id="btnNext">Foto ▶</button>
+        </div>
+        <div class="metrics">
+          <div class="metric">⏱ <span id="mTime">0</span>s</div>
+          <div class="metric">🎯 Mov: <span id="mMoves">0</span></div>
+          <div class="metric">🏆 Pts: <span id="mScore">0</span></div>
+          <div class="metric">📸 <span id="mIx">1</span>/10</div>
+          <div class="metric">👥 Participantes: <span id="mPeople">0</span></div>
+        </div>
+        <div class="row">
+          <span class="chip">Nivel auto: <span id="mLevel">4×4</span></span>
+          <span class="chip" id="mName">Jugador: —</span>
+        </div>
+      </div>
+      <div class="preview">
+        <div class="chip">Vista previa: <strong id="mPhotoName">—</strong></div>
+        <img id="preview" alt="Vista previa" />
+        <div class="gift" id="giftBox">
+          <a id="claimLink" href="#" target="_blank" rel="noopener">🎁 Reclamar premio por WhatsApp</a>
+          <div class="hint" id="giftHint"></div>
+        </div>
+      </div>
+      <div class="history">
+        <div class="chip">Historial local</div>
+        <div class="scroll" id="historyBox">Aún sin partidas.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Tablero</h3>
+      <div class="board-wrap">
+        <canvas id="board" width="900" height="900"></canvas>
+      </div>
+    </section>
+  </div>
+
+  <canvas class="confetti" id="confetti"></canvas>
+  <div id="err"></div>
+
+  <div class="modal" id="nameModal" style="display:none">
+    <div class="box">
+      <h2>¿Quién juega?</h2>
+      <p class="hint">Tu nombre aparecerá en el ranking local.</p>
+      <input id="nameInput" type="text" placeholder="Escribe tu nombre" />
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="btnStart">Empezar</button>
+        <button id="btnSkip">Jugar como invitado</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============ Utilidades DOM y errores ============ */
+    const $ = (id) => document.getElementById(id);
+    const showErr = (msg) => { const el = $('err'); el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 6000); };
+    window.addEventListener('error', (e) => showErr(e.message || 'Error JS'));
+
+    /* ---------------- Config ---------------- */
+    const PHOTO_BASENAMES = ["foto_01", "foto_02", "foto_03", "foto_04", "foto_05", "foto_06", "foto_07", "foto_08", "foto_09", "foto_10"];
+    const PHOTO_BASE_PATHS = ["./images", "./imagenes", "./imágenes"]; // carpetas posibles
+    const CANDIDATE_EXTS = ["jpeg", "jpg", "png"];                   // extensiones posibles
+    function gridForPhoto(ix) { return [4, 4, 5, 5, 6, 6, 7, 7, 8, 8][ix] || 4; }
+
+    const WHATSAPP = "+56946971900";
+    const MSG_CERVEZA = encodeURIComponent("TE HAS GANADO UNA CAJA DE CERVEZA PARA EL PROXIMO PASEO");
+    const MSG_WISKY = encodeURIComponent("¡FELICIDADES! GANASTE UNA BOTELLA DE WHISKY");
+
+    /* ------------- Estado global ------------- */
+    const cvs = $('board'), ctx = cvs.getContext('2d');
+    const preview = $('preview');
+    const timeEl = $('mTime'), movesEl = $('mMoves'), scoreEl = $('mScore'), levelEl = $('mLevel'), photoIxEl = $('mIx'), mPeopleEl = $('mPeople'), nameLabel = $('mName');
+    const photoNameEl = $('mPhotoName');
+    const giftBox = $('giftBox'), giftHint = $('giftHint'), claimLink = $('claimLink');
+    const historyBox = $('historyBox');
+    const confetti = $('confetti'), cfx = confetti.getContext('2d');
+
+    let PLAYER = { name: "Invitado" };
+    let participants = JSON.parse(localStorage.getItem("pp_participants") || "[]"); mPeopleEl.textContent = participants.length;
+
+    let currentPhoto = 0, img = new Image();
+    let N = 4, tiles = [], sel = [];
+    let timer = 0, moves = 0, solved = false, startEpoch = 0, tInt = null;
+    let suspense, victory;
+
+    /* ---- Drag/ghost ---- */
+    let pointerDown = false, dragStartIdx = null, startClient = { x: 0, y: 0 }, lastClient = { x: 0, y: 0 }, dragJustHappened = false, hoverIdx = null;
+    let ghostCanvas = null, ghostOffset = { x: 0, y: 0 };
+
+    /* ------------- Helpers ------------- */
+    function computeScore(t, m) { return Math.max(0, 10000 - (t * 50 + m * 10)); }
+    function isSolved() { return tiles.every((v, i) => v === i); }
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0;[a[i], a[j]] = [a[j], a[i]]; }
+      if (tiles.every((v, i) => v === i)) shuffle(a);
+    }
+    function updateHUD() { timeEl.textContent = String(timer); movesEl.textContent = String(moves); levelEl.textContent = `${N}×${N}`; photoIxEl.textContent = String(currentPhoto + 1); scoreEl.textContent = String(computeScore(timer, moves)); }
+    function pushParticipant(name) { participants.push({ n: name, ts: Date.now() }); localStorage.setItem("pp_participants", JSON.stringify(participants)); mPeopleEl.textContent = participants.length; }
+    function logGame(entry) { const k = "pp_history"; const hist = JSON.parse(localStorage.getItem(k) || "[]"); hist.unshift(entry); localStorage.setItem(k, JSON.stringify(hist.slice(0, 50))); renderHistory(); }
+    function renderHistory() { const hist = JSON.parse(localStorage.getItem("pp_history") || "[]"); historyBox.innerHTML = hist.length ? hist.map(h => `• <b>${h.name}</b> — ${h.time}s, mov:${h.moves}, pts:${h.score}, foto:${h.photo + 1} (${h.N}×${h.N})`).join("<br>") : "Aún sin partidas."; }
+
+    /* ------------- Carga robusta de fotos ------------- */
+    async function loadImageSequential(baseName) {
+      return new Promise((resolve, reject) => {
+        let p = 0, e = 0;
+        const tryNext = () => {
+          if (p >= PHOTO_BASE_PATHS.length) { reject(new Error("No se encontró la imagen " + baseName + " en images/imagenes/imágenes (.jpeg/.jpg/.png)")); return; }
+          const url = `${PHOTO_BASE_PATHS[p]}/${baseName}.${CANDIDATE_EXTS[e]}`;
+          const probe = new Image();
+          probe.onload = () => resolve(url);
+          probe.onerror = () => {
+            e++; if (e < CANDIDATE_EXTS.length) { tryNext(); return; }
+            e = 0; p++; tryNext();
+          };
+          probe.src = url + `?v=${Date.now()}`; // evita cache dura
+        };
+        tryNext();
+      });
+    }
+
+    async function setPhoto(ix) {
+      currentPhoto = (ix + PHOTO_BASENAMES.length) % PHOTO_BASENAMES.length;
+      N = gridForPhoto(currentPhoto);
+      updateHUD();
+
+      const baseName = PHOTO_BASENAMES[currentPhoto];
+      try {
+        const url = await loadImageSequential(baseName);
+        img = new Image();
+        img.onload = () => { preview.src = url; photoNameEl.textContent = url.split('/').pop(); newGame(); };
+        img.onerror = () => { showErr("Error cargando " + url); };
+        img.src = url;
+      } catch (err) {
+        showErr(err.message || String(err));
+      }
+    }
+
+    /* ------------- Juego ------------- */
+    function newGame() {
+      tiles = Array.from({ length: N * N }, (_, i) => i);
+      shuffle(tiles);
+      moves = 0; timer = 0; solved = false; updateHUD();
+      if (tInt) { clearInterval(tInt); tInt = null; }
+      stopSuspense();
+      ghostCanvas = null; hoverIdx = null; sel = [];
+      render();
+      giftBox.style.display = "none";
+    }
+
+    function render() {
+      const w = cvs.width, h = cvs.height, tw = w / N, th = h / N;
+      ctx.clearRect(0, 0, w, h);
+      if (!img.width || !img.height) {
+        ctx.fillStyle = "#151a24"; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#8a93a5"; ctx.font = "16px system-ui"; ctx.fillText("Cargando foto...", 16, 28);
+        return;
+      }
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const idx = r * N + c, v = tiles[idx];
+          const sx = (v % N) * (img.width / N), sy = ((v / N) | 0) * (img.height / N);
+          ctx.drawImage(img, sx, sy, img.width / N, img.height / N, c * tw, r * th, tw, th);
+          if (sel.includes(idx)) { ctx.strokeStyle = "#22c55e"; ctx.lineWidth = 3; ctx.strokeRect(c * tw + 1.5, r * th + 1.5, tw - 3, th - 3); }
+        }
+      }
+      if (hoverIdx != null) {
+        const r = (hoverIdx / N | 0), c = (hoverIdx % N);
+        ctx.save(); ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(c * tw, r * th, tw, th); ctx.restore();
+      }
+      if (ghostCanvas && pointerDown) {
+        const rect = cvs.getBoundingClientRect();
+        const x = (lastClient.x - rect.left) * (cvs.width / rect.width) - ghostOffset.x;
+        const y = (lastClient.y - rect.top) * (cvs.height / rect.height) - ghostOffset.y;
+        ctx.save(); ctx.globalAlpha = .85; ctx.drawImage(ghostCanvas, x, y); ctx.restore();
+      }
+    }
+
+    /* ------------- Swap commit-first + pulse ------------- */
+    function pulseCells(a, b) {
+      const w = cvs.width, h = cvs.height, tw = w / N, th = h / N;
+      const ar = (a / N | 0), ac = (a % N), br = (b / N | 0), bc = (b % N);
+      let t = 0; const frames = 6;
+      (function anim() {
+        t++; render();
+        ctx.save();
+        ctx.lineWidth = 4; ctx.strokeStyle = `rgba(255,255,255,${(frames - t + 1) / (frames + 2)})`;
+        ctx.strokeRect(ac * tw + 2, ar * th + 2, tw - 4, th - 4);
+        ctx.strokeRect(bc * tw + 2, br * th + 2, tw - 4, th - 4);
+        ctx.restore();
+        if (t < frames) requestAnimationFrame(anim);
+      })();
+    }
+    function doSwap(a, b) {
+      if (a == null || b == null || a === b) return;
+      [tiles[a], tiles[b]] = [tiles[b], tiles[a]];
+      moves++; movesEl.textContent = String(moves);
+      scoreEl.textContent = String(computeScore(timer, moves));
+      sel = []; render(); pulseCells(a, b);
+      if (isSolved()) { clearInterval(tInt); tInt = null; solved = true; showWin(); }
+    }
+
+    /* ------------- Win & premios ------------- */
+    function showWin() {
+      stopSuspense(); playVictory(); fireConfetti(600);
+      const score = computeScore(timer, moves);
+      logGame({ name: PLAYER.name, time: timer, moves, score, photo: currentPhoto, N });
+
+      const enough = participants.length >= 15, isL5 = (currentPhoto === 4), isL10 = (currentPhoto === 9);
+      const base = `https://wa.me/${WHATSAPP}?text=`;
+      giftHint.textContent = "";
+      if (enough && (isL5 || isL10)) {
+        giftBox.style.display = "block";
+        claimLink.href = base + (isL10 ? MSG_WISKY : MSG_CERVEZA);
+        giftHint.textContent = isL10 ? "Nivel 10: Botella de whisky (mejor tiempo único, ≥15 participantes)"
+          : "Nivel 5: Caja de cerveza (mejor tiempo único, ≥15 participantes)";
+      } else giftBox.style.display = "none";
+    }
+
+    /* ------------- Audio ------------- */
+    function ensureAudio() { if (!suspense) { suspense = new Audio("./audio/suspense.mp3"); suspense.loop = true; suspense.preload = "auto"; } if (!victory) { victory = new Audio("./audio/victory.mp3"); victory.preload = "auto"; } }
+    function startSuspense() { ensureAudio(); try { suspense.currentTime = 0; suspense.play(); } catch { } }
+    function stopSuspense() { if (suspense) { try { suspense.pause(); } catch { } } }
+    function playVictory() { ensureAudio(); try { victory.currentTime = 0; victory.play(); } catch { } }
+
+    /* ------------- Interacción (tap, drag + ghost) ------------- */
+    function clientToIndex(clientX, clientY) {
+      const r = cvs.getBoundingClientRect();
+      const x = (clientX - r.left) * (cvs.width / r.width);
+      const y = (clientY - r.top) * (cvs.height / r.height);
+      const tw = cvs.width / N, th = cvs.height / N;
+      const ix = Math.min(N - 1, Math.max(0, Math.floor(x / tw)));
+      const iy = Math.min(N - 1, Math.max(0, Math.floor(y / th)));
+      return iy * N + ix;
+    }
+    function buildGhostForIndex(idx) {
+      const w = cvs.width, h = cvs.height, tw = w / N, th = h / N;
+      const v = tiles[idx];
+      const sx = (v % N) * (img.width / N), sy = ((v / N) | 0) * (img.height / N);
+      const can = document.createElement('canvas'); can.width = tw; can.height = th;
+      can.getContext('2d').drawImage(img, sx, sy, img.width / N, img.height / N, 0, 0, tw, th);
+      return can;
+    }
+
+    cvs.addEventListener('pointerdown', e => {
+      cvs.setPointerCapture(e.pointerId);
+      pointerDown = true; dragJustHappened = false; hoverIdx = null;
+      startClient = { x: e.clientX, y: e.clientY }; lastClient = { x: e.clientX, y: e.clientY };
+      dragStartIdx = clientToIndex(e.clientX, e.clientY);
+      ghostCanvas = buildGhostForIndex(dragStartIdx);
+
+      const rect = cvs.getBoundingClientRect(), w = cvs.width, h = cvs.height, tw = w / N, th = h / N;
+      const r = (dragStartIdx / N | 0), c = (dragStartIdx % N);
+      const cellX = c * tw, cellY = r * th;
+      const px = (e.clientX - rect.left) * (w / rect.width), py = (e.clientY - rect.top) * (h / rect.height);
+      ghostOffset = { x: px - cellX, y: py - cellY };
+
+      if (!tInt) {
+        startEpoch = Date.now();
+        tInt = setInterval(() => { timer = ((Date.now() - startEpoch) / 1000) | 0; timeEl.textContent = String(timer); scoreEl.textContent = String(computeScore(timer, moves)); }, 250);
+        startSuspense();
+      }
+      sel = [dragStartIdx]; render();
+    });
+    cvs.addEventListener('pointermove', e => {
+      if (!pointerDown) return;
+      hoverIdx = clientToIndex(e.clientX, e.clientY);
+      lastClient = { x: e.clientX, y: e.clientY };
+      render();
+    });
+    cvs.addEventListener('pointerup', e => {
+      if (!pointerDown) return;
+      pointerDown = false;
+
+      const endIdx = clientToIndex(e.clientX, e.clientY);
+      hoverIdx = null;
+      ghostCanvas = null;
+
+      if (dragStartIdx != null && endIdx != null && endIdx !== dragStartIdx) {
+        doSwap(dragStartIdx, endIdx);
+        dragJustHappened = true;
+      } else {
+        if (!sel.includes(endIdx)) sel.push(endIdx);
+        if (sel.length === 2) { const [a, b] = sel; sel = []; doSwap(a, b); }
+        else render();
+      }
+      dragStartIdx = null;
+    });
+
+    // Evitar scroll en móvil
+    ['touchstart', 'touchmove', 'touchend'].forEach(t => {
+      cvs.addEventListener(t, ev => ev.preventDefault(), { passive: false });
+    });
+
+    // Tap-to-swap con guardia post-drag
+    cvs.addEventListener('click', ev => {
+      if (solved) return;
+      if (dragJustHappened) { dragJustHappened = false; return; }
+
+      const r = cvs.getBoundingClientRect();
+      const x = ev.clientX - r.left, y = ev.clientY - r.top;
+      const tw = cvs.width / N, th = cvs.height / N;
+      const idx = ((y / th) | 0) * N + ((x / tw) | 0);
+
+      if (!tInt) {
+        startEpoch = Date.now();
+        tInt = setInterval(() => { timer = ((Date.now() - startEpoch) / 1000) | 0; timeEl.textContent = String(timer); scoreEl.textContent = String(computeScore(timer, moves)); }, 250);
+        startSuspense();
+      }
+
+      if (!sel.includes(idx)) sel.push(idx);
+      if (sel.length === 2) { const [a, b] = sel; sel = []; doSwap(a, b); } else render();
+    });
+
+    /* ------------- Confetti ------------- */
+    function fireConfetti(ms = 1000) {
+      const W = confetti.width = window.innerWidth, H = confetti.height = window.innerHeight;
+      const dots = Array.from({ length: 160 }, () => ({ x: Math.random() * W, y: -20 - Math.random() * H, r: 2 + Math.random() * 4, vy: 2 + Math.random() * 5, vx: -1 + Math.random() * 2, a: .5 + Math.random() * .5 }));
+      let tStart = performance.now();
+      (function tick(t) {
+        cfx.clearRect(0, 0, W, H);
+        for (const d of dots) {
+          d.x += d.vx; d.y += d.vy; if (d.y > H + 10) d.y = -10, d.x = Math.random() * W;
+          cfx.globalAlpha = d.a; cfx.fillStyle = `hsl(${(d.y / 3) % 360},90%,60%)`; cfx.beginPath(); cfx.arc(d.x, d.y, d.r, 0, Math.PI * 2); cfx.fill();
+        }
+        if (t - tStart < ms) requestAnimationFrame(tick); else cfx.clearRect(0, 0, W, H);
+      })(tStart);
+    }
+
+    /* ------------- Botones ------------- */
+    $('btnMusic').onclick = () => { ensureAudio(); if (suspense && suspense.paused) startSuspense(); else stopSuspense(); };
+    $('btnShuffle').onclick = () => newGame();
+    $('btnPrev').onclick = () => setPhoto(currentPhoto - 1);
+    $('btnNext').onclick = () => setPhoto(currentPhoto + 1);
+
+    /* ------------- Modal nombre ------------- */
+    function askName() {
+      const modal = $('nameModal'), input = $('nameInput');
+      modal.style.display = 'flex'; input.focus();
+      const accept = () => {
+        const v = (input.value || "Invitado").trim().slice(0, 30);
+        PLAYER.name = v || "Invitado"; nameLabel.textContent = "Jugador: " + PLAYER.name;
+        modal.style.display = 'none'; pushParticipant(PLAYER.name);
+      };
+      $('btnStart').onclick = accept;
+      $('btnSkip').onclick = () => { PLAYER.name = "Invitado"; nameLabel.textContent = "Jugador: Invitado"; modal.style.display = 'none'; pushParticipant(PLAYER.name); };
+    }
+
+    /* ------------- Inicio ------------- */
+    renderHistory();
+    askName();
+    setPhoto(0);
+  </script>
+</body>
+
+</html>
